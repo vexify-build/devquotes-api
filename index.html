@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevQuotes API 🌐 — Developer Quotes REST API</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #0d1117; color: #e6edf3; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 16px; padding: 40px; max-width: 680px; width: 100%; }
+  h1 { font-size: 1.5rem; margin-bottom: 24px; color: #58a6ff; }
+  .quote-box { background: #0d1117; border: 1px solid #30363d; border-radius: 10px; padding: 20px; margin-bottom: 16px; min-height: 80px; }
+  .quote { font-size: 1.1rem; line-height: 1.7; margin-bottom: 10px; }
+  .author { color: #7d8590; font-size: 0.85rem; }
+  .tags { margin-top: 8px; }
+  .tag { display: inline-block; background: #1f6feb22; border: 1px solid #1f6feb44; color: #58a6ff; border-radius: 20px; padding: 2px 10px; font-size: 0.75rem; margin-right: 6px; margin-bottom: 4px; }
+  .endpoints { margin-top: 28px; }
+  .endpoints h2 { font-size: 0.9rem; margin-bottom: 12px; color: #bc8cff; text-transform: uppercase; letter-spacing: 1px; }
+  .endpoint { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 10px 14px; margin-bottom: 6px; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; display: flex; align-items: center; gap: 10px; }
+  .method { color: #3fb950; font-weight: 700; min-width: 40px; }
+  .method.post { color: #f0883e; }
+  .method.put { color: #a371f7; }
+  .path { color: #e6edf3; }
+  .desc { color: #7d8590; margin-left: auto; font-family: 'Inter', sans-serif; font-size: 0.75rem; }
+  .actions { display: flex; gap: 10px; margin: 20px 0; flex-wrap: wrap; }
+  button { background: #21262d; border: 1px solid #30363d; border-radius: 8px; color: #e6edf3; padding: 8px 16px; font-family: 'Inter', sans-serif; font-size: 0.85rem; cursor: pointer; transition: background 0.15s; }
+  button:hover { background: #30363d; }
+  button.active { background: #1f6feb; border-color: #1f6feb; }
+  .install { background: #0d1117; border: 1px solid #30363d; border-radius: 10px; padding: 16px; margin-top: 24px; }
+  .install code { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: #3fb950; }
+  .install p { font-size: 0.78rem; color: #7d8590; margin-top: 8px; }
+  .links { display: flex; gap: 16px; margin-top: 12px; }
+  .links a { color: #58a6ff; text-decoration: none; font-size: 0.85rem; }
+  .links a:hover { text-decoration: underline; }
+  .author-filter { display: flex; gap: 8px; margin-top: 12px; align-items: center; }
+  .author-filter label { font-size: 0.8rem; color: #7d8590; }
+  .author-filter input { background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #e6edf3; padding: 6px 10px; font-family: 'Inter', sans-serif; font-size: 0.82rem; width: 160px; }
+  .author-filter input:focus { outline: none; border-color: #58a6ff; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>🌐 DevQuotes API</h1>
+
+  <div class="quote-box">
+    <p class="quote" id="q-text">Loading...</p>
+    <p class="author" id="q-author"></p>
+    <div class="tags" id="q-tags"></div>
+  </div>
+
+  <div class="actions">
+    <button onclick="getRandom()" id="btn-random" class="active">🔄 New Random Quote</button>
+    <button onclick="getAll()">📋 All Quotes</button>
+    <button onclick="getStats()">📊 Stats</button>
+  </div>
+
+  <div class="author-filter">
+    <label>Filter by author:</label>
+    <input type="text" id="author-input" placeholder="e.g. Kernighan" onkeydown="if(event.key==='Enter')filterByAuthor()">
+    <button onclick="filterByAuthor()">Search</button>
+  </div>
+
+  <div class="endpoints">
+    <h2>API Reference</h2>
+    <div class="endpoint">
+      <span class="method">GET</span>
+      <span class="path">/quote</span>
+      <span class="desc">Random quote</span>
+    </div>
+    <div class="endpoint">
+      <span class="method">GET</span>
+      <span class="path">/quote?author=Kernighan</span>
+      <span class="desc">Filter by author</span>
+    </div>
+    <div class="endpoint">
+      <span class="method">GET</span>
+      <span class="path">/all</span>
+      <span class="desc">All 25 quotes</span>
+    </div>
+    <div class="endpoint">
+      <span class="method">GET</span>
+      <span class="path">/stats</span>
+      <span class="desc">API stats</span>
+    </div>
+    <div class="endpoint">
+      <span class="method">GET</span>
+      <span class="path">/health</span>
+      <span class="desc">Health check</span>
+    </div>
+  </div>
+
+  <div class="install">
+    <code>node server.js</code>
+    <p>Runs on http://localhost:3000 — self-hosted REST API</p>
+    <div class="links">
+      <a href="https://github.com/vexify-build/devquotes-api" target="_blank">📦 GitHub</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const QUOTES = [
+  { id: 1,  text: "Debugging is twice as hard as writing the code in the first place.", author: "Brian Kernighan", tags: ["debugging", "code-quality"] },
+  { id: 2,  text: "Any fool can write code that a computer can understand. Good programmers write code that humans can understand.", author: "Martin Fowler", tags: ["readability", "best-practices"] },
+  { id: 3,  text: "First, solve the problem. Then, write the code.", author: "John Johnson", tags: ["problem-solving", "planning"] },
+  { id: 4,  text: "Code is like humor. When you have to explain it, it's bad.", author: "Cory House", tags: ["readability", "clean-code"] },
+  { id: 5,  text: "Simplicity is the soul of efficiency.", author: "Austin Freeman", tags: ["simplicity", "performance"] },
+  { id: 6,  text: "The best error message is the one that never shows up.", author: "Thomas Fuchs", tags: ["ux", "error-handling"] },
+  { id: 7,  text: "Make it work, make it right, make it fast.", author: "Kent Beck", tags: ["development", "performance"] },
+  { id: 8,  text: "Deleted code is debugged code.", author: "Jeff Sickel", tags: ["debugging", "refactoring"] },
+  { id: 9,  text: "Programming isn't about what you know; it's about what you can figure out.", author: "Chris Pine", tags: ["learning", "problem-solving"] },
+  { id: 10, text: "The most important property of a program is whether it accomplishes the intention of its user.", author: "C.A.R. Hoare", tags: ["design", "usability"] },
+  { id: 11, text: "Weeks of coding can save you hours of planning.", author: "Anonymous", tags: ["planning", "workflow"] },
+  { id: 12, text: "It's not a bug — it's an undocumented feature.", author: "Anonymous", tags: ["humor", "debugging"] },
+  { id: 13, text: "The best code is no code at all.", author: "Jeff Atwood", tags: ["simplicity", "best-practices"] },
+  { id: 14, text: "Talk is cheap. Show me the code.", author: "Linus Torvalds", tags: ["action", "pragmatism"] },
+  { id: 15, text: "Perfection is achieved not when there is nothing more to add, but when there is nothing left to take away.", author: "Antoine de Saint-Exupéry", tags: ["design", "simplicity"] },
+  { id: 16, text: "Debugging is like being the detective in a crime movie where you are also the murderer.", author: "Filipe Fortes", tags: ["debugging", "humor"] },
+  { id: 17, text: "Walking on water and developing software from a specification are easy if both are frozen.", author: "Edward V. Berard", tags: ["planning", "agile"] },
+  { id: 18, text: "A language that doesn't affect the way you think about programming is not worth knowing.", author: "Alan Perlis", tags: ["languages", "thinking"] },
+  { id: 19, text: "The only way to learn a new programming language is by writing programs in it.", author: "Dennis Ritchie", tags: ["learning", "practice"] },
+  { id: 20, text: "Sometimes it pays to stay in bed on Monday, rather than spending the rest of the week debugging Monday's code.", author: "Dan Salomon", tags: ["humor", "debugging"] },
+  { id: 21, text: "Measuring programming progress by lines of code is like measuring aircraft building progress by weight.", author: "Bill Gates", tags: ["productivity", "metrics"] },
+  { id: 22, text: "The function of good software is to make the complex appear to be simple.", author: "Grady Booch", tags: ["design", "ux"] },
+  { id: 23, text: "Java is to JavaScript what car is to carpet.", author: "Chris Heilmann", tags: ["humor", "languages"] },
+  { id: 24, text: "Any sufficiently advanced technology is indistinguishable from magic.", author: "Arthur C. Clarke", tags: ["technology", "philosophy"] },
+  { id: 25, text: "Always code as if the person who ends up maintaining your code will be a violent psychopath who knows where you live.", author: "John Woods", tags: ["best-practices", "maintainability"] },
+];
+
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function renderQuote(q) {
+  document.getElementById('q-text').textContent = '"' + q.text + '"';
+  document.getElementById('q-author').textContent = '— ' + q.author + ' (id: ' + q.id + ')';
+  document.getElementById('q-tags').innerHTML = q.tags.map(t => '<span class="tag">' + t + '</span>').join('');
+}
+
+function getRandom(author) {
+  document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-random').classList.add('active');
+  let pool = QUOTES;
+  if (author) {
+    const q = author.toLowerCase();
+    pool = QUOTES.filter(x => x.author.toLowerCase().includes(q));
+    if (!pool.length) pool = QUOTES;
+  }
+  renderQuote(pick(pool));
+}
+
+function getAll() {
+  document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-all')?.classList.add('active');
+  const list = QUOTES.map(q => '<li style="margin-bottom:12px;line-height:1.6;"><strong>"' + q.text + '"</strong><br><span style="color:#7d8590;font-size:0.82rem;">— ' + q.author + '</span></li>').join('');
+  document.getElementById('q-text').innerHTML = '<ul style="list-style:none;padding:0;">' + list + '</ul>';
+  document.getElementById('q-author').textContent = QUOTES.length + ' quotes from ' + new Set(QUOTES.map(q => q.author)).size + ' authors';
+  document.getElementById('q-tags').innerHTML = '';
+}
+
+function getStats() {
+  document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+  document.getElementById('q-text').innerHTML = '<div style="font-family:JetBrains Mono,monospace;font-size:0.9rem;line-height:2;"><div><span style="color:#bc8cff;">total</span>: ' + QUOTES.length + '</div><div><span style="color:#bc8cff;">authors</span>: ' + new Set(QUOTES.map(q => q.author)).size + '</div><div><span style="color:#bc8cff;">tags</span>: ' + [...new Set(QUOTES.flatMap(q => q.tags))].join(', ') + '</div></div>';
+  document.getElementById('q-author').textContent = '📊 API Stats';
+  document.getElementById('q-tags').innerHTML = '';
+}
+
+function filterByAuthor() {
+  const val = document.getElementById('author-input').value.trim();
+  getRandom(val);
+}
+
+getRandom();
+</script>
+</body>
+</html>
